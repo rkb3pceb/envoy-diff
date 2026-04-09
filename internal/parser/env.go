@@ -54,6 +54,10 @@ func parseLine(line string) (string, string, error) {
 		return "", "", fmt.Errorf("empty key in line %q", line)
 	}
 
+	if strings.ContainsAny(key, " \t") {
+		return "", "", fmt.Errorf("invalid key %q: key must not contain whitespace", key)
+	}
+
 	value := strings.TrimSpace(parts[1])
 	value = stripQuotes(value)
 
