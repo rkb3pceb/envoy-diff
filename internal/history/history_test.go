@@ -45,6 +45,31 @@ func TestAppend_PersistsEntry(t *testing.T) {
 	}
 }
 
+func TestAppend_MultipleEntries_PreservesOrder(t *testing.T) {
+	path := tempStorePath(t)
+	s, _ := history.Open(path)
+
+	ids := []string{"first", "second", "third"}
+	for _, id := range ids {
+		if err := s.Append(history.Entry{ID: id}); err != nil {
+			t.Fatalf("append failed for id %s: %v", id, err)
+		}
+	}
+
+	s2, err := history.Open(path)
+	if err != nil {
+		t.Fatalf("reload failed: %v", err)
+	}
+	if len(s2.Entries) != len(ids) {
+		t.Fatalf("expected %d entries, got %d", len(ids), len(s2.Entries))
+	}
+	for i, id := range ids {
+		if s2.Entries[i].ID != id {
+			t.Errorf("entry[%d]: expected %s, got %s", i, id, s2.Entries[i].ID)
+		}
+	}
+}
+
 func TestLast_ReturnsNewest(t *testing.T) {
 	path := tempStorePath(t)
 	s, _ := history.Open(path)
