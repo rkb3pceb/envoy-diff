@@ -56,7 +56,7 @@ func (e *csvExporter) Write(w io.Writer, changes []diff.Change, opts Options) er
 	for _, c := range changes {
 		row := []string{c.Key, string(c.Type), c.OldValue, c.NewValue}
 		if err := cw.Write(row); err != nil {
-			return fmt.Errorf("writing csv row: %w", err)
+			return fmt.Errorf("writing csv row for key %q: %w", c.Key, err)
 		}
 	}
 	cw.Flush()
@@ -91,4 +91,13 @@ func escapeMarkdown(s string) string {
 		return "_empty_"
 	}
 	return strings.ReplaceAll(s, "|", `\|`)
+}
+
+// SupportedFormats returns a slice of all supported export format strings.
+// This is useful for generating help text or validation messages.
+func SupportedFormats() []string {
+	return []string{
+		string(FormatCSV),
+		string(FormatMarkdown),
+	}
 }
