@@ -20,6 +20,20 @@ func writeConfig(t *testing.T, content string) string {
 	return f.Name()
 }
 
+// chdir changes the working directory for the duration of the test,
+// restoring the original directory via t.Cleanup.
+func chdir(t *testing.T, dir string) {
+	t.Helper()
+	old, err := os.Getwd()
+	if err != nil {
+		t.Fatalf("getwd: %v", err)
+	}
+	if err := os.Chdir(dir); err != nil {
+		t.Fatalf("chdir %s: %v", dir, err)
+	}
+	t.Cleanup(func() { os.Chdir(old) })
+}
+
 func TestLoad_Defaults_WhenNoFile(t *testing.T) {
 	cfg, err := Load("/nonexistent/path/envoy-diff.yaml")
 	// A missing explicit path should propagate an os error, but a missing
@@ -30,9 +44,7 @@ func TestLoad_Defaults_WhenNoFile(t *testing.T) {
 
 func TestLoad_ReturnsDefaults_WhenNoAutoFile(t *testing.T) {
 	// Change to a temp dir so no .envoy-diff.yaml is found automatically.
-	old, _ := os.Getwd()
-	t.Cleanup(func() { os.Chdir(old) })
-	os.Chdir(t.TempDir())
+	chdir(t, t.TempDir())
 
 	cfg, err := Load("")
 	if err != nil {
@@ -85,9 +97,7 @@ func TestLoad_InvalidFormat_ReturnsError(t *testing.T) {
 
 func TestLoad_AutoDiscoversLocalFile(t *testing.T) {
 	dir := t.TempDir()
-	old, _ := os.Getwd()
-	t.Cleanup(func() { os.Chdir(old) })
-	os.Chdir(dir)
+	chdir(t, dir)
 
 	if err := os.WriteFile(filepath.Join(dir, ".envoy-diff.yaml"), []byte("audit_mode: true\n"), 0644); err != nil {
 		t.Fatalf("write local config: %v", err)
