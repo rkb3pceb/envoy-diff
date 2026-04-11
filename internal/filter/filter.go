@@ -56,6 +56,33 @@ func Apply(entries []diff.Entry, opts Options) []diff.Entry {
 	return result
 }
 
+// Count returns the number of entries in the slice that match the provided
+// Options, without allocating a filtered result slice.
+func Count(entries []diff.Entry, opts Options) int {
+	allowedTypes := buildTypeSet(opts.Types)
+	count := 0
+
+	for _, e := range entries {
+		if opts.OnlyChanged && e.Type == diff.Unchanged {
+			continue
+		}
+		if len(allowedTypes) > 0 {
+			if _, ok := allowedTypes[e.Type]; !ok {
+				continue
+			}
+		}
+		if opts.Prefix != "" && !strings.HasPrefix(e.Key, opts.Prefix) {
+			continue
+		}
+		if opts.KeyContains != "" && !strings.Contains(e.Key, opts.KeyContains) {
+			continue
+		}
+		count++
+	}
+
+	return count
+}
+
 // buildTypeSet converts a slice of ChangeType into a set (map) for O(1) lookup.
 func buildTypeSet(types []diff.ChangeType) map[diff.ChangeType]struct{} {
 	if len(types) == 0 {
