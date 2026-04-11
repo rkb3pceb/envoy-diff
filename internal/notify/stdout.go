@@ -35,3 +35,15 @@ func (s *StdoutNotifier) Send(e Event) error {
 	_, err := fmt.Fprintln(s.w, strings.Join(lines, "\n"))
 	return err
 }
+
+// SendAll sends multiple events in sequence, returning the first error
+// encountered. Remaining events are still attempted after an error.
+func (s *StdoutNotifier) SendAll(events []Event) error {
+	var firstErr error
+	for _, e := range events {
+		if err := s.Send(e); err != nil && firstErr == nil {
+			firstErr = err
+		}
+	}
+	return firstErr
+}
