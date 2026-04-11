@@ -16,4 +16,8 @@
 //
 // Unresolved references (where the referenced key is absent) are left
 // in place so that callers can detect and report them via UnresolvedKeys.
+//
+// Interpolation is non-recursive: if a substituted value itself contains
+// a ${VAR} reference, that reference is not expanded. This mirrors the
+// behaviour of Docker Compose and avoids infinite-loop edge cases.
 package resolve
