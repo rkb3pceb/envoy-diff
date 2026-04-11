@@ -20,4 +20,12 @@
 // Interpolation is non-recursive: if a substituted value itself contains
 // a ${VAR} reference, that reference is not expanded. This mirrors the
 // behaviour of Docker Compose and avoids infinite-loop edge cases.
+//
+// # Options
+//
+// DefaultOptions returns an Options value with sensible defaults:
+//   - FallbackToOS: false (do not read from os.Getenv)
+//   - KeepUnresolved: true (leave unmatched references intact)
+//
+// Pass a customised Options to Map or Value to override these defaults.
 package resolve
