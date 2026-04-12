@@ -69,6 +69,21 @@ func TestRender_AllowMissing_EmptyString(t *testing.T) {
 	}
 }
 
+func TestRender_MultipleVars(t *testing.T) {
+	src := []byte("HOST={{ .HOST }}\nPORT={{ .PORT }}\n")
+	opts := template.DefaultOptions()
+	opts.Vars["HOST"] = "example.com"
+	opts.Vars["PORT"] = "8080"
+
+	out, err := template.Render(src, opts)
+	if err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+	if string(out) != "HOST=example.com\nPORT=8080\n" {
+		t.Errorf("unexpected output: %q", out)
+	}
+}
+
 func TestRenderFile_ReadsAndRenders(t *testing.T) {
 	dir := t.TempDir()
 	path := filepath.Join(dir, "env.tmpl")
