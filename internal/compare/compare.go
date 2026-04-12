@@ -63,3 +63,16 @@ func Run(oldEnv, newEnv map[string]string, opts Options) Summary {
 func (s Summary) HasChanges() bool {
 	return s.Added+s.Removed+s.Modified > 0
 }
+
+// FilterByType returns a new slice containing only the changes
+// that match the given change type. This is useful for rendering
+// focused views (e.g. only additions, only removals).
+func (s Summary) FilterByType(t diff.ChangeType) []diff.Change {
+	var filtered []diff.Change
+	for _, c := range s.Changes {
+		if c.Type == t {
+			filtered = append(filtered, c)
+		}
+	}
+	return filtered
+}
