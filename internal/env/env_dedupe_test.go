@@ -72,3 +72,15 @@ func TestDedupeMap_MultipleSources_AllDuplicatesReported(t *testing.T) {
 	assert.Equal(t, "z", res.Map["B"])
 	assert.Equal(t, "y", res.Map["C"])
 }
+
+func TestDedupeMap_EmptySources_ReturnsEmptyMap(t *testing.T) {
+	res := DedupeMap([]map[string]string{}, DefaultDedupeOptions())
+	assert.False(t, res.HasDuplicates())
+	assert.Empty(t, res.Map)
+}
+
+func TestDedupeMap_SingleEmptySource_ReturnsEmptyMap(t *testing.T) {
+	res := DedupeMap([]map[string]string{{}}, DefaultDedupeOptions())
+	assert.False(t, res.HasDuplicates())
+	assert.Empty(t, res.Map)
+}
