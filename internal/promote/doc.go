@@ -12,6 +12,13 @@
 // Sensitive values are automatically redacted using a redact.Context so
 // that secrets are never surfaced in promotion reports.
 //
+// # Policy files
+//
+// A policy file (YAML or JSON) can be supplied via Options.PolicyPath to
+// enforce rules such as "no high-risk changes to production" or "require
+// approval for keys matching SECRET_*". When any rule is violated,
+// Result.Blocked is set to true and Result.Violations lists each breach.
+//
 // Basic usage:
 //
 //	from := promote.Stage{Name: "staging",    Env: stagingVars}
