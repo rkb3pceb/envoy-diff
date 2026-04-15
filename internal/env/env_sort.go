@@ -20,7 +20,7 @@ const (
 // DefaultSortOptions returns a SortOptions with ascending key order.
 func DefaultSortOptions() SortOptions {
 	return SortOptions{
-		Order:         SortAsc,
+		Order:           SortAsc,
 		CaseInsensitive: true,
 	}
 }
@@ -33,6 +33,18 @@ type SortOptions struct {
 	CaseInsensitive bool
 }
 
+// compareStrings returns true if a should come before b, given the
+// case-insensitive flag and whether the ordering is ascending.
+func compareStrings(a, b string, caseInsensitive, ascending bool) bool {
+	if caseInsensitive {
+		a, b = strings.ToLower(a), strings.ToLower(b)
+	}
+	if ascending {
+		return a < b
+	}
+	return a > b
+}
+
 // SortedKeys returns the keys of m ordered according to opts.
 func SortedKeys(m map[string]string, opts SortOptions) []string {
 	keys := make([]string, 0, len(m))
@@ -43,27 +55,15 @@ func SortedKeys(m map[string]string, opts SortOptions) []string {
 	switch opts.Order {
 	case SortDesc:
 		sort.Slice(keys, func(i, j int) bool {
-			a, b := keys[i], keys[j]
-			if opts.CaseInsensitive {
-				a, b = strings.ToLower(a), strings.ToLower(b)
-			}
-			return a > b
+			return compareStrings(keys[i], keys[j], opts.CaseInsensitive, false)
 		})
 	case SortByValue:
 		sort.Slice(keys, func(i, j int) bool {
-			va, vb := m[keys[i]], m[keys[j]]
-			if opts.CaseInsensitive {
-				va, vb = strings.ToLower(va), strings.ToLower(vb)
-			}
-			return va < vb
+			return compareStrings(m[keys[i]], m[keys[j]], opts.CaseInsensitive, true)
 		})
 	default: // SortAsc
 		sort.Slice(keys, func(i, j int) bool {
-			a, b := keys[i], keys[j]
-			if opts.CaseInsensitive {
-				a, b = strings.ToLower(a), strings.ToLower(b)
-			}
-			return a < b
+			return compareStrings(keys[i], keys[j], opts.CaseInsensitive, true)
 		})
 	}
 
