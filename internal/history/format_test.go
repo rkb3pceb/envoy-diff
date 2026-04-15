@@ -65,3 +65,27 @@ func TestPrint_MultipleEntries(t *testing.T) {
 		t.Errorf("expected both entries in output")
 	}
 }
+
+// TestPrint_FindingsHighlighted verifies that entries with findings are visually
+// distinguished from entries with no findings in the output.
+func TestPrint_FindingsHighlighted(t *testing.T) {
+	clean := sampleEntry("clean-id")
+	clean.Findings = 0
+
+	dirty := sampleEntry("dirty-id")
+	dirty.Findings = 5
+
+	var buf bytes.Buffer
+	history.Print(&buf, []history.Entry{clean, dirty})
+	out := buf.String()
+
+	if !strings.Contains(out, "clean-id") {
+		t.Errorf("expected clean entry in output")
+	}
+	if !strings.Contains(out, "dirty-id") {
+		t.Errorf("expected dirty entry in output")
+	}
+	if !strings.Contains(out, "5") {
+		t.Errorf("expected findings count '5' in output")
+	}
+}
