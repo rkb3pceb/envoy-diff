@@ -34,9 +34,9 @@ type PatchOp struct {
 
 // PatchResult holds the outcome of a PatchMap call.
 type PatchResult struct {
-	Env      map[string]string
-	Applied  []PatchOp
-	Skipped  []PatchOp
+	Env     map[string]string
+	Applied []PatchOp
+	Skipped []PatchOp
 }
 
 // PatchMap applies a sequence of PatchOps to a copy of base.
@@ -94,4 +94,10 @@ func PatchMap(base map[string]string, ops []PatchOp, opts PatchOptions) (PatchRe
 // HasPatchApplied returns true when at least one op was applied.
 func HasPatchApplied(r PatchResult) bool {
 	return len(r.Applied) > 0
+}
+
+// Summary returns a human-readable description of the patch result,
+// listing how many operations were applied and skipped.
+func (r PatchResult) Summary() string {
+	return fmt.Sprintf("patch result: %d applied, %d skipped", len(r.Applied), len(r.Skipped))
 }
