@@ -55,7 +55,7 @@ func TestContext_Apply_CustomRuleUsesPlaceholder(t *testing.T) {
 func TestContext_ApplyMap_RedactsOnlySensitive(t *testing.T) {
 	ctx := DefaultContext()
 	env := map[string]string{
-		"APP_ENV":    "production",
+		"APP_ENV":     "production",
 		"DB_PASSWORD": "s3cr3t",
 	}
 	out := ctx.ApplyMap(env)
@@ -75,5 +75,17 @@ func TestContext_ApplyMap_DisabledPassesThrough(t *testing.T) {
 	out := ctx.ApplyMap(env)
 	if out["DB_PASSWORD"] != "s3cr3t" {
 		t.Errorf("expected original value when disabled, got %q", out["DB_PASSWORD"])
+	}
+}
+
+func TestContext_ApplyMap_DoesNotMutateInput(t *testing.T) {
+	ctx := DefaultContext()
+	env := map[string]string{
+		"DB_PASSWORD": "s3cr3t",
+		"APP_ENV":     "production",
+	}
+	_ = ctx.ApplyMap(env)
+	if env["DB_PASSWORD"] != "s3cr3t" {
+		t.Error("expected ApplyMap to not mutate the input map")
 	}
 }
