@@ -94,3 +94,16 @@ func TestHasCopied_TrueWhenCopied(t *testing.T) {
 	assert.True(t, HasCopied(CopyResult{Copied: []string{"K"}}))
 	assert.False(t, HasCopied(CopyResult{}))
 }
+
+func TestCopyKeys_DestPrefix_DoesNotAffectOriginalKey(t *testing.T) {
+	src := map[string]string{"FOO": "bar"}
+	dst := map[string]string{}
+	opts := DefaultCopyOptions()
+	opts.DestPrefix = "NEW_"
+
+	_, err := CopyKeys(src, dst, []string{"FOO"}, opts)
+	require.NoError(t, err)
+	_, exists := dst["FOO"]
+	assert.False(t, exists, "original key should not be present in dst when DestPrefix is set")
+	assert.Equal(t, "bar", dst["NEW_FOO"])
+}
