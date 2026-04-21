@@ -5,80 +5,87 @@ import (
 )
 
 func TestUppercaseMap_NoOp_WhenBothDisabled(t *testing.T) {
-	src := map[string]string{"foo": "bar", "baz": "qux"}
-	opts := UppercaseOptions{Keys: false, Values: false}
-	res := UppercaseMap(src, opts)
-	if len(res.Changed) != 0 {
-		t.Fatalf("expected no changes, got %v", res.Changed)
-	}
-	if res.Map["foo"] != "bar" {
-		t.Errorf("unexpected value: %s", res.Map["foo"])
+	src := map[string]string{"db_host": "localhost", "port": "5432"}
+	opts := DefaultUppercaseOptions()
+	out := UppercaseMap(src, opts)
+	for k, v := range src {
+		if out[k] != v {
+			t.Errorf("key %q: got %q, want %q", k, out[k], v)
+		}
 	}
 }
 
 func TestUppercaseMap_UppercasesKeys(t *testing.T) {
-	src := map[string]string{"db_host": "localhost", "port": "5432"}
+	src := map[string]string{"db_host": "localhost", "api_key": "secret"}
 	opts := DefaultUppercaseOptions()
-	res := UppercaseMap(src, opts)
-	if _, ok := res.Map["DB_HOST"]; !ok {
-		t.Error("expected DB_HOST in result")
+	opts.UppercaseKeys = true
+	out := UppercaseMap(src, opts)
+	if _, ok := out["DB_HOST"]; !ok {
+		t.Error("expected key DB_HOST")
 	}
-	if _, ok := res.Map["PORT"]; !ok {
-		t.Error("expected PORT in result")
+	if _, ok := out["API_KEY"]; !ok {
+		t.Error("expected key API_KEY")
 	}
-	if !HasUppercaseChanges(res) {
-		t.Error("expected changes to be reported")
+	if len(out) != 2 {
+		t.Errorf("expected 2 keys, got %d", len(out))
 	}
 }
 
 func TestUppercaseMap_UppercasesValues(t *testing.T) {
-	src := map[string]string{"MODE": "production", "LOG": "debug"}
-	opts := UppercaseOptions{Keys: false, Values: true}
-	res := UppercaseMap(src, opts)
-	if res.Map["MODE"] != "PRODUCTION" {
-		t.Errorf("expected PRODUCTION, got %s", res.Map["MODE"])
+	src := map[string]string{"ENV": "production", "MODE": "release"}
+	opts := DefaultUppercaseOptions()
+	opts.UppercaseValues = true
+	out := UppercaseMap(src, opts)
+	if out["ENV"] != "PRODUCTION" {
+		t.Errorf("ENV: got %q, want PRODUCTION", out["ENV"])
 	}
-	if res.Map["LOG"] != "DEBUG" {
-		t.Errorf("expected DEBUG, got %s", res.Map["LOG"])
+	if out["MODE"] != "RELEASE" {
+		t.Errorf("MODE: got %q, want RELEASE", out["MODE"])
 	}
 }
 
 func TestUppercaseMap_OnlyKeys_LimitsScope(t *testing.T) {
-	src := map[string]string{"db_host": "localhost", "app_name": "myapp"}
-	opts := UppercaseOptions{Keys: true, OnlyKeys: []string{"db_host"}}
-	res := UppercaseMap(src, opts)
-	if _, ok := res.Map["DB_HOST"]; !ok {
-		t.Error("expected DB_HOST")
+	src := map[string]string{"app_name": "myapp", "log_level": "debug"}
+	opts := DefaultUppercaseOptions()
+	opts.UppercaseKeys = true
+	opts.OnlyKeys = []string{"app_name"}
+	out := UppercaseMap(src, opts)
+	if _, ok := out["APP_NAME"]; !ok {
+		t.Error("expected APP_NAME to be uppercased")
 	}
-	if _, ok := res.Map["app_name"]; !ok {
-		t.Error("expected app_name to remain unchanged")
-	}
-	if len(res.Changed) != 1 {
-		t.Errorf("expected 1 change, got %d", len(res.Changed))
+	if _, ok := out["log_level"]; !ok {
+		t.Error("expected log_level to remain unchanged")
 	}
 }
 
 func TestUppercaseMap_DoesNotMutateInput(t *testing.T) {
 	src := map[string]string{"key": "value"}
 	opts := DefaultUppercaseOptions()
+	opts.UppercaseKeys = true
+	opts.UppercaseValues = true
 	_ = UppercaseMap(src, opts)
 	if _, ok := src["key"]; !ok {
 		t.Error("original map was mutated")
 	}
-}
-
-func TestUppercaseMap_AlreadyUppercase_NoChange(t *testing.T) {
-	src := map[string]string{"HOST": "localhost"}
-	opts := DefaultUppercaseOptions()
-	res := UppercaseMap(src, opts)
-	if HasUppercaseChanges(res) {
-		t.Error("expected no changes when keys already uppercase")
+	if src["key"] != "value" {
+		t.Error("original value was mutated")
 	}
 }
 
-func TestUppercaseMap_EmptyMap_ReturnsEmpty(t *testing.T) {
-	res := UppercaseMap(map[string]string{}, DefaultUppercaseOptions())
-	if len(res.Map) != 0 {
-		t.Errorf("expected empty map, got %v", res.Map)
+func TestUppercaseMap_HasChanges_DetectsModification(t *testing.T) {
+	src := map[string]string{"db_host": "localhost"}
+	opts := DefaultUppercaseOptions()
+	opts.UppercaseKeys = true
+	if !HasUppercaseChanges(src, opts) {
+		t.Error("expected HasUppercaseChanges to return true")
+	}
+}
+
+func TestUppercaseMap_HasChanges_NoModification(t *testing.T) {
+	src := map[string]string{"DB_HOST": "localhost"}
+	opts := DefaultUppercaseOptions()
+	opts.UppercaseKeys = true
+	if HasUppercaseChanges(src, opts) {
+		t.Error("expected HasUppercaseChanges to return false")
 	}
 }
